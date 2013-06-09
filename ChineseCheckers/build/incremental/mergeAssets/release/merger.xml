@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger>
+
+    <dataSet config="main" >
+        <source path="/home/loban/Projects/ChineseCheckersProject/ChineseCheckers/src/main/assets" />
+    </dataSet>
+    <dataSet config="release" >
+        <source path="/home/loban/Projects/ChineseCheckersProject/ChineseCheckers/src/release/assets" />
+    </dataSet>
+
+</merger>
