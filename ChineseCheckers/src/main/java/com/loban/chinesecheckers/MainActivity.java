@@ -4,12 +4,21 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
 
+import com.loban.chinesecheckers.model.Board;
+import com.loban.chinesecheckers.view.BoardView;
+
+/**
+ * Created by loban on 5/26/13.
+ *
+ * @author Loban Rahman <loban.rahman@gmail.com>
+ */
 public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
+        setContentView(new BoardView(this, new Board()));
     }
 
 
