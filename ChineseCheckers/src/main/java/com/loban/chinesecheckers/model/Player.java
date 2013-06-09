@@ -1,5 +1,7 @@
 package com.loban.chinesecheckers.model;
 
+import com.loban.chinesecheckers.enums.PlayerColor;
+
 /**
  * Created by loban on 5/26/13.
  *
@@ -7,24 +9,24 @@ package com.loban.chinesecheckers.model;
  */
 public class Player
 {
-    private GameColor color;
+    private PlayerColor mPlayerColor;
 
-    private String name;
+    private String mName;
 
-    public Player(GameColor color, String name) {
-        this.color = color;
-        this.name = name;
+    public Player(PlayerColor playerColor, String name) {
+        mPlayerColor = playerColor;
+        mName = name;
     }
 
-    public GameColor getColor() {
-        return color;
+    public PlayerColor getPlayerColor() {
+        return mPlayerColor;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.mName = name;
     }
 
     public String getName() {
-        return name;
+        return mName;
     }
 }

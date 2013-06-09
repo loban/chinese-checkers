@@ -14,6 +14,8 @@ import com.loban.chinesecheckers.view.BoardView;
  */
 public class MainActivity extends Activity {
 
+    // Activity overrides
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

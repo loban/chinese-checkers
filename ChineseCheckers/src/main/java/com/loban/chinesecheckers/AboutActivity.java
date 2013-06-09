@@ -10,6 +10,8 @@ import android.os.Bundle;
  */
 public class AboutActivity extends Activity {
 
+    // Activity overrides
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

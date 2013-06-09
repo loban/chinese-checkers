@@ -7,10 +7,11 @@ import android.graphics.Paint;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.loban.chinesecheckers.enums.PlayerColor;
+
 import com.loban.chinesecheckers.model.Board;
-import com.loban.chinesecheckers.model.GameColor;
-import com.loban.chinesecheckers.model.Hole;
-import com.loban.chinesecheckers.model.Piece;
+import com.loban.chinesecheckers.model.BoardHole;
+import com.loban.chinesecheckers.model.PlayerPiece;
 
 import java.util.Iterator;
 import java.util.Random;
@@ -41,14 +42,17 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
         this.board = board;
     }
 
-    // SurfaceHolder.Callback methods
+    // SurfaceHolder.Callback overrides
 
+    @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         isRunning = true;
+
         thread = new Thread(this);
         thread.start();
     }
 
+    @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
         synchronized (surfaceHolder) {
             canvasWidth = width;
@@ -57,6 +61,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
         }
     }
 
+    @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         isRunning = false;
         boolean isStopping = true;
@@ -70,16 +75,20 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
         }
     }
 
-    // Runnable methods
+    // Runnable overrides
 
+    @Override
     public void run() {
         while (isRunning) {
+            // Draw the frame
             SurfaceHolder surfaceHolder = getHolder();
             Canvas canvas = surfaceHolder.lockCanvas();
             synchronized (surfaceHolder) {
                 drawBoard(canvas);
             }
             surfaceHolder.unlockCanvasAndPost(canvas);
+
+            // Max 25 frames/sec
             try {
                 Thread.sleep(40);
             }
@@ -94,47 +103,46 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
         paint.setStyle(Paint.Style.FILL);
         canvas.drawColor(Color.BLACK);
 
-        Iterator<Hole> holeIter = board.getHoleIterator();
+        Iterator<BoardHole> holeIter = board.getBoardHoleIterator();
         while (holeIter.hasNext()) {
-            Hole hole = holeIter.next();
-            if (hole == null)
-                continue;
-            drawHole(canvas, hole);
+            BoardHole boardHole = holeIter.next();
+            drawBoardHole(canvas, boardHole);
 
-            Piece piece = hole.getPiece();
-            if (piece == null)
-                continue;
-            drawPiece(canvas, piece);
+            PlayerPiece playerPiece = boardHole.getPlayerPiece();
+            if (playerPiece != null)
+                drawPlayerPiece(canvas, playerPiece);
         }
     }
 
-    private void drawHole(Canvas canvas, Hole hole) {
-        float x = getX(hole.getRow(), hole.getCol()) + (tileSize * 0.5f);
-        float y = getY(hole.getRow(), hole.getCol()) + (tileSize * 0.5f);
+    private void drawBoardHole(Canvas canvas, BoardHole boardHole) {
+        float x = getX(boardHole.getRow(), boardHole.getCol()) + (tileSize * 0.5f);
+        float y = getY(boardHole.getRow(), boardHole.getCol()) + (tileSize * 0.5f);
         float outerR = tileSize * 0.5f;
         float innerR = tileSize * 0.4f;
 
-        if (hole.getColor() != GameColor.WHITE) {
-            x += getNoise();
-            y += getNoise();
-        }
+//        if (boardHole.getPlayerColor() != null) {
+//            x += getNoise();
+//            y += getNoise();
+//        }
 
-        paint.setColor(getColor(hole.getColor()));
+        paint.setColor(Color.WHITE);
+        if (boardHole.getPlayerColor() != null)
+            paint.setColor(getColor(boardHole.getPlayerColor()));
         canvas.drawCircle(x, y, outerR, paint);
 
         paint.setColor(Color.BLACK);
         canvas.drawCircle(x, y, innerR, paint);
     }
 
-    private void drawPiece(Canvas canvas, Piece piece) {
-        float x = getX(piece.getRow(), piece.getCol()) + (tileSize * 0.5f);
-        float y = getY(piece.getRow(), piece.getCol()) + (tileSize * 0.5f);
+    private void drawPlayerPiece(Canvas canvas, PlayerPiece playerPiece) {
+        float x = getX(playerPiece.getBoardHole().getRow(), playerPiece.getBoardHole().getCol()) + (tileSize * 0.5f);
+        float y = getY(playerPiece.getBoardHole().getRow(), playerPiece.getBoardHole().getCol()) + (tileSize * 0.5f);
         float r = tileSize * 0.3f;
 
-        x += getNoise();
-        y += getNoise();
+//        x += getNoise();
+//        y += getNoise();
 
-        paint.setColor(getColor(piece.getColor()));
+        paint.setColor(getColor(playerPiece.getPlayer().getPlayerColor()));
         canvas.drawCircle(x, y, r, paint);
     }
 
@@ -158,14 +166,12 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
         return tileSize * row;
     }
 
-    private float getNoise() {
-        return (random.nextBoolean() ? 1 : -1) * random.nextFloat() * tileSize / 8.0f;
-    }
+//    private float getNoise() {
+//        return (random.nextBoolean() ? 1 : -1) * random.nextFloat() * tileSize / 8.0f;
+//    }
 
-    private int getColor(GameColor color) {
-        switch (color) {
-            case WHITE:
-                return Color.WHITE;
+    private int getColor(PlayerColor playerColor) {
+        switch (playerColor) {
             case RED:
                 return Color.RED;
             case BLUE:
@@ -179,6 +185,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
             case CYAN:
                 return Color.CYAN;
         }
+
         return Color.TRANSPARENT;
     }
 }

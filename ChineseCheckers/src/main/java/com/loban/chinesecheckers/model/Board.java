@@ -1,5 +1,8 @@
 package com.loban.chinesecheckers.model;
 
+import com.loban.chinesecheckers.enums.BoardDirection;
+import com.loban.chinesecheckers.enums.PlayerColor;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,74 +38,63 @@ public class Board
         ". . . . . . . . . . . . . . . . . . .",
     };
 
-    private Collection<Hole> holes = new ArrayList<Hole>();
+    private Collection<BoardHole> mBoardHoleCollection = new ArrayList<BoardHole>();
 
     public Board() {
-        resetHoles();
-    }
-
-    public Iterator<Hole> getHoleIterator() {
-        return holes.iterator();
-    }
-
-    public void resetHoles() {
-        Hole[][] holes = new Hole[SIZE][SIZE];
+        // Create the board holes
+        BoardHole[][] boardHoles = new BoardHole[SIZE][SIZE];
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                GameColor color = null;
                 switch (initialColors[i].charAt(j * 2)) {
                     case '=':
-                        color = GameColor.WHITE;
+                        boardHoles[i][j] = new BoardHole(i, j);
                         break;
                     case 'R':
-                        color = GameColor.RED;
+                        boardHoles[i][j] = new BoardHole(i, j, PlayerColor.RED);
                         break;
                     case 'G':
-                        color = GameColor.GREEN;
+                        boardHoles[i][j] = new BoardHole(i, j, PlayerColor.GREEN);
                         break;
                     case 'B':
-                        color = GameColor.BLUE;
+                        boardHoles[i][j] = new BoardHole(i, j, PlayerColor.BLUE);
                         break;
                     case 'M':
-                        color = GameColor.MAGENTA;
+                        boardHoles[i][j] = new BoardHole(i, j, PlayerColor.MAGENTA);
                         break;
                     case 'Y':
-                        color = GameColor.YELLOW;
+                        boardHoles[i][j] = new BoardHole(i, j, PlayerColor.YELLOW);
                         break;
                     case 'C':
-                        color = GameColor.CYAN;
+                        boardHoles[i][j] = new BoardHole(i, j, PlayerColor.CYAN);
                         break;
                 }
-                if (color != null) {
-                    holes[i][j] = new Hole(color, i, j);
-                    if (color != GameColor.WHITE)
-                        holes[i][j].setPiece(new Piece(color, holes[i][j]));
-                }
+                if (boardHoles[i][j] != null)
+                    mBoardHoleCollection.add(boardHoles[i][j]);
             }
         }
+
+        // Link the board holes
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                if (holes[i][j] == null)
+                if (boardHoles[i][j] == null)
                     continue;
                 if (i + 1 < Board.SIZE)
-                    holes[i][j].setHole(HolePosition.BOTTOM_RIGHT, holes[i + 1][j]);
+                    boardHoles[i][j].setLinkedBoardHole(BoardDirection.BOTTOM_RIGHT, boardHoles[i + 1][j]);
                 if (i + 1 < Board.SIZE && j - 1 >= 0)
-                    holes[i][j].setHole(HolePosition.BOTTOM_LEFT, holes[i + 1][j - 1]);
+                    boardHoles[i][j].setLinkedBoardHole(BoardDirection.BOTTOM_LEFT, boardHoles[i + 1][j - 1]);
                 if (j - 1 >= 0)
-                    holes[i][j].setHole(HolePosition.LEFT, holes[i][j - 1]);
+                    boardHoles[i][j].setLinkedBoardHole(BoardDirection.LEFT, boardHoles[i][j - 1]);
                 if (i - 1 >= 0)
-                    holes[i][j].setHole(HolePosition.TOP_LEFT, holes[i - 1][j]);
+                    boardHoles[i][j].setLinkedBoardHole(BoardDirection.TOP_LEFT, boardHoles[i - 1][j]);
                 if (i - 1 >= 0 && j + 1 < Board.SIZE)
-                    holes[i][j].setHole(HolePosition.TOP_RIGHT, holes[i - 1][j + 1]);
+                    boardHoles[i][j].setLinkedBoardHole(BoardDirection.TOP_RIGHT, boardHoles[i - 1][j + 1]);
                 if (j + 1 < Board.SIZE)
-                    holes[i][j].setHole(HolePosition.RIGHT, holes[i + 1][j - 1]);
+                    boardHoles[i][j].setLinkedBoardHole(BoardDirection.RIGHT, boardHoles[i + 1][j - 1]);
             }
         }
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                if (holes[i][j] != null)
-                    this.holes.add(holes[i][j]);
-            }
-        }
+    }
+
+    public Iterator<BoardHole> getBoardHoleIterator() {
+        return mBoardHoleCollection.iterator();
     }
 }
