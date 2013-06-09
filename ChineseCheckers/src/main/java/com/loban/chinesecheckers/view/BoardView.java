@@ -4,11 +4,17 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+
+import com.loban.android.view.MoveGestureDetector;
+import com.loban.android.view.RotateGestureDetector;
 
 import com.loban.chinesecheckers.enums.PlayerColor;
-
 import com.loban.chinesecheckers.model.Board;
 import com.loban.chinesecheckers.model.BoardHole;
 import com.loban.chinesecheckers.model.PlayerPiece;
@@ -18,68 +24,175 @@ import java.util.Random;
 
 /**
  * Created by loban on 5/26/13.
+ * TODO: Use inner classes for gestures, threads, and others
  *
  * @author Loban Rahman <loban.rahman@gmail.com>
  */
-public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Runnable
+public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
+                                                      View.OnTouchListener,
+                                                      MoveGestureDetector.OnMoveGestureListener,
+                                                      ScaleGestureDetector.OnScaleGestureListener,
+                                                      RotateGestureDetector.OnRotateGestureListener,
+                                                      Runnable
 {
-    private Board board;
+    private float mWidth;
+    private float mHeight;
 
-    private int canvasWidth;
-    private int canvasHeight;
-    private float tileSize;
+    private float mScale;
+    private float mRotate;
+    private float mTranslateX;
+    private float mTranslateY;
 
-    private Thread thread;
-    private boolean isRunning;
+    private float mTile;
 
-    private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Random random = new Random();
+    private MoveGestureDetector mMoveGestureDetector;
+    private ScaleGestureDetector mScaleGestureDetector;
+    private RotateGestureDetector mRotateGestureDetector;
+
+    private Thread mThread;
+    private boolean mIsRunning;
+
+    private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Random mRandom = new Random();
+
+    private Board mBoard;
 
     public BoardView(Context context, Board board) {
         super(context);
-        getHolder().addCallback(this);
 
-        this.board = board;
+        getHolder().addCallback(this);
+        setOnTouchListener(this);
+
+        mMoveGestureDetector = new MoveGestureDetector(context, this);
+        mScaleGestureDetector = new ScaleGestureDetector(context, this);
+        mRotateGestureDetector = new RotateGestureDetector(context, this);
+
+        mBoard = board;
     }
 
     // SurfaceHolder.Callback overrides
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        isRunning = true;
+        mScale = 1.5f;
+        mRotate = 0f;
+        mTranslateX = 0f;
+        mTranslateY = 0f;
 
-        thread = new Thread(this);
-        thread.start();
+        mIsRunning = true;
+        mThread = new Thread(this);
+        mThread.start();
+
+        Log.d("scooby", "surfaceCreated");
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
         synchronized (surfaceHolder) {
-            canvasWidth = width;
-            canvasHeight = height;
-            tileSize = Math.min(width, height) / (float)(Board.SIZE);
+            mWidth = width;
+            mHeight = height;
+
+            mTile = (Math.min(width, height) / (float)(Board.SIZE)) * mScale;
         }
+
+        Log.d("scooby", "surfaceChanged");
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        isRunning = false;
+        mIsRunning = false;
         boolean isStopping = true;
         while (isStopping) {
             try {
-                thread.join();
+                mThread.join();
                 isStopping = false;
             }
             catch (InterruptedException e) {
             }
         }
+
+        Log.d("scooby", "surfaceDestroyed");
+    }
+
+    // View.OnTouchListener overrides
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        Log.d("scooby", "onTouch");
+
+        mMoveGestureDetector.onTouchEvent(event);
+        mScaleGestureDetector.onTouchEvent(event);
+        mRotateGestureDetector.onTouchEvent(event);
+
+        return true;
+    }
+
+    // MoveGestureDetector.OnMoveGestureListener overrides
+
+    @Override
+    public boolean onMove(MoveGestureDetector detector) {
+        Log.d("scooby", "onMove");
+
+        mTranslateX = detector.getFocusDelta().x;
+        mTranslateY = detector.getFocusDelta().y;
+
+        return true;
+    }
+
+    @Override
+    public boolean onMoveBegin(MoveGestureDetector detector) {
+        return false;
+    }
+
+    @Override
+    public void onMoveEnd(MoveGestureDetector detector) {
+    }
+
+    // ScaleGestureDetector.OnScaleGestureListener overrides
+
+    @Override
+    public boolean onScale(ScaleGestureDetector detector) {
+        Log.d("scooby", "onScale");
+
+        mScale *= detector.getScaleFactor();
+
+        return true;
+    }
+
+    @Override
+    public boolean onScaleBegin(ScaleGestureDetector detector) {
+        return false;
+    }
+
+    @Override
+    public void onScaleEnd(ScaleGestureDetector detector) {
+    }
+
+    // RotateGestureDetector.OnRotateGestureListener overrides
+
+    @Override
+    public boolean onRotate(RotateGestureDetector detector) {
+        Log.d("scooby", "onRotate");
+
+        mRotate -= detector.getRotationDegreesDelta();
+
+        return true;
+    }
+
+    @Override
+    public boolean onRotateBegin(RotateGestureDetector detector) {
+        return false;
+    }
+
+    @Override
+    public void onRotateEnd(RotateGestureDetector detector) {
     }
 
     // Runnable overrides
 
     @Override
     public void run() {
-        while (isRunning) {
+        while (mIsRunning) {
             // Draw the frame
             SurfaceHolder surfaceHolder = getHolder();
             Canvas canvas = surfaceHolder.lockCanvas();
@@ -100,10 +213,10 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
     // Drawing methods
 
     private void drawBoard(Canvas canvas) {
-        paint.setStyle(Paint.Style.FILL);
+        mPaint.setStyle(Paint.Style.FILL);
         canvas.drawColor(Color.BLACK);
 
-        Iterator<BoardHole> holeIter = board.getBoardHoleIterator();
+        Iterator<BoardHole> holeIter = mBoard.getBoardHoleIterator();
         while (holeIter.hasNext()) {
             BoardHole boardHole = holeIter.next();
             drawBoardHole(canvas, boardHole);
@@ -115,60 +228,60 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Ru
     }
 
     private void drawBoardHole(Canvas canvas, BoardHole boardHole) {
-        float x = getX(boardHole.getRow(), boardHole.getCol()) + (tileSize * 0.5f);
-        float y = getY(boardHole.getRow(), boardHole.getCol()) + (tileSize * 0.5f);
-        float outerR = tileSize * 0.5f;
-        float innerR = tileSize * 0.4f;
+        float x = getX(boardHole.getRow(), boardHole.getCol()) + (mTile * 0.5f);
+        float y = getY(boardHole.getRow(), boardHole.getCol()) + (mTile * 0.5f);
+        float outerR = mTile * 0.5f;
+        float innerR = mTile * 0.4f;
 
-//        if (boardHole.getPlayerColor() != null) {
-//            x += getNoise();
-//            y += getNoise();
-//        }
+        if (boardHole.getPlayerColor() != null) {
+            x += getNoise();
+            y += getNoise();
+        }
 
-        paint.setColor(Color.WHITE);
+        mPaint.setColor(Color.WHITE);
         if (boardHole.getPlayerColor() != null)
-            paint.setColor(getColor(boardHole.getPlayerColor()));
-        canvas.drawCircle(x, y, outerR, paint);
+            mPaint.setColor(getColor(boardHole.getPlayerColor()));
+        canvas.drawCircle(x, y, outerR, mPaint);
 
-        paint.setColor(Color.BLACK);
-        canvas.drawCircle(x, y, innerR, paint);
+        mPaint.setColor(Color.BLACK);
+        canvas.drawCircle(x, y, innerR, mPaint);
     }
 
     private void drawPlayerPiece(Canvas canvas, PlayerPiece playerPiece) {
-        float x = getX(playerPiece.getBoardHole().getRow(), playerPiece.getBoardHole().getCol()) + (tileSize * 0.5f);
-        float y = getY(playerPiece.getBoardHole().getRow(), playerPiece.getBoardHole().getCol()) + (tileSize * 0.5f);
-        float r = tileSize * 0.3f;
+        float x = getX(playerPiece.getBoardHole().getRow(), playerPiece.getBoardHole().getCol()) + (mTile * 0.5f);
+        float y = getY(playerPiece.getBoardHole().getRow(), playerPiece.getBoardHole().getCol()) + (mTile * 0.5f);
+        float r = mTile * 0.3f;
 
-//        x += getNoise();
-//        y += getNoise();
+        x += getNoise();
+        y += getNoise();
 
-        paint.setColor(getColor(playerPiece.getPlayer().getPlayerColor()));
-        canvas.drawCircle(x, y, r, paint);
+        mPaint.setColor(getColor(playerPiece.getPlayer().getPlayerColor()));
+        canvas.drawCircle(x, y, r, mPaint);
     }
 
     // Utility methods
 
     private float getX(int row, int col) {
         int mid = (Board.SIZE - 1) / 2;
-        return getRawX(row, col) - getRawX(mid, mid) - (tileSize / 2) + (canvasWidth / 2);
+        return getRawX(row, col) - getRawX(mid, mid) - (mTile / 2) + (mWidth / 2) + mTranslateX;
     }
 
     private float getY(int row, int col) {
         int mid = (Board.SIZE - 1) / 2;
-        return getRawY(row, col) - getRawY(mid, mid) - (tileSize / 2) + (canvasHeight / 2);
+        return getRawY(row, col) - getRawY(mid, mid) - (mTile / 2) + (mHeight / 2) + mTranslateY;
     }
 
     private float getRawX(int row, int col) {
-        return tileSize * (col + (row * 0.5f)) / (float)(Math.sqrt(0.75));
+        return mTile * (col + (row * 0.5f)) / (float)(Math.sqrt(0.75));
     }
 
     private float getRawY(int row, int col) {
-        return tileSize * row;
+        return mTile * row;
     }
 
-//    private float getNoise() {
-//        return (random.nextBoolean() ? 1 : -1) * random.nextFloat() * tileSize / 8.0f;
-//    }
+    private float getNoise() {
+        return (mRandom.nextBoolean() ? 1 : -1) * mRandom.nextFloat() * mTile / 8.0f;
+    }
 
     private int getColor(PlayerColor playerColor) {
         switch (playerColor) {
