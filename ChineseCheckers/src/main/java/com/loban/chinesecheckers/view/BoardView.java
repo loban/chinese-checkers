@@ -76,8 +76,6 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         mScale = 1.5f;
         mRotate = 0f;
-        mTranslateX = 0f;
-        mTranslateY = 0f;
 
         mIsRunning = true;
         mThread = new Thread(this);
@@ -92,7 +90,10 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
             mWidth = width;
             mHeight = height;
 
-            mTile = (Math.min(width, height) / (float)(Board.SIZE)) * mScale;
+            mTile = (Math.min(mWidth, mHeight) / (float)(Board.SIZE)) * mScale;
+
+            mTranslateX = (mWidth / 2) - (mTile / 2);
+            mTranslateY = (mHeight / 2) - (mTile / 2);
         }
 
         Log.d("scooby", "surfaceChanged");
@@ -131,17 +132,17 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 
     @Override
     public boolean onMove(MoveGestureDetector detector) {
-        Log.d("scooby", "onMove");
+        mTranslateX += detector.getFocusDelta().x;
+        mTranslateY += detector.getFocusDelta().y;
 
-        mTranslateX = detector.getFocusDelta().x;
-        mTranslateY = detector.getFocusDelta().y;
+        Log.d("scooby", "onMove " + mTranslateX + ", " + mTranslateY);
 
         return true;
     }
 
     @Override
     public boolean onMoveBegin(MoveGestureDetector detector) {
-        return false;
+        return true;
     }
 
     @Override
@@ -152,16 +153,19 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-        Log.d("scooby", "onScale");
-
         mScale *= detector.getScaleFactor();
+        mScale = Math.max(0.1f, Math.min(mScale, 5.0f));
+
+        Log.d("scooby", "onScale " + detector.getScaleFactor() + " -> " + mScale);
+
+        mTile = (Math.min(mWidth, mHeight) / (float)(Board.SIZE)) * mScale;
 
         return true;
     }
 
     @Override
     public boolean onScaleBegin(ScaleGestureDetector detector) {
-        return false;
+        return true;
     }
 
     @Override
@@ -176,12 +180,14 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 
         mRotate -= detector.getRotationDegreesDelta();
 
+        Log.d("scooby", "onRotate " + detector.getRotationDegreesDelta() + " -> " + mRotate);
+
         return true;
     }
 
     @Override
     public boolean onRotateBegin(RotateGestureDetector detector) {
-        return false;
+        return true;
     }
 
     @Override
@@ -263,12 +269,32 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 
     private float getX(int row, int col) {
         int mid = (Board.SIZE - 1) / 2;
-        return getRawX(row, col) - getRawX(mid, mid) - (mTile / 2) + (mWidth / 2) + mTranslateX;
+
+        double x = getRawX(row, col) - getRawX(mid, mid);
+        double y = getRawY(row, col) - getRawY(mid, mid);
+
+        double s = Math.sin(mRotate / Math.PI);
+        double c = Math.cos(mRotate / Math.PI);
+
+        x = (x * c) - (y * s) + mTranslateX;
+        y = (x * s) + (y * c) + mTranslateY;
+
+        return (float)x;
     }
 
     private float getY(int row, int col) {
         int mid = (Board.SIZE - 1) / 2;
-        return getRawY(row, col) - getRawY(mid, mid) - (mTile / 2) + (mHeight / 2) + mTranslateY;
+
+        double x = getRawX(row, col) - getRawX(mid, mid);
+        double y = getRawY(row, col) - getRawY(mid, mid);
+
+        double s = Math.sin(mRotate / Math.PI);
+        double c = Math.cos(mRotate / Math.PI);
+
+        x = (x * c) - (y * s) + mTranslateX;
+        y = (x * s) + (y * c) + mTranslateY;
+
+        return (float)y;
     }
 
     private float getRawX(int row, int col) {
