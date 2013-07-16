@@ -38,12 +38,12 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
     private float mWidth;
     private float mHeight;
 
+    private float mTile;
+
     private float mScale;
     private float mRotate;
     private float mTranslateX;
     private float mTranslateY;
-
-    private float mTile;
 
     private MoveGestureDetector mMoveGestureDetector;
     private ScaleGestureDetector mScaleGestureDetector;
@@ -176,9 +176,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 
     @Override
     public boolean onRotate(RotateGestureDetector detector) {
-        Log.d("scooby", "onRotate");
-
-        mRotate -= detector.getRotationDegreesDelta();
+        mRotate -= detector.getRotationDegreesDelta() * Math.PI / 180;
 
         Log.d("scooby", "onRotate " + detector.getRotationDegreesDelta() + " -> " + mRotate);
 
@@ -225,9 +223,9 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
         Iterator<BoardHole> holeIter = mBoard.getBoardHoleIterator();
         while (holeIter.hasNext()) {
             BoardHole boardHole = holeIter.next();
-            drawBoardHole(canvas, boardHole);
-
             PlayerPiece playerPiece = boardHole.getPlayerPiece();
+
+            drawBoardHole(canvas, boardHole);
             if (playerPiece != null)
                 drawPlayerPiece(canvas, playerPiece);
         }
@@ -273,11 +271,10 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
         double x = getRawX(row, col) - getRawX(mid, mid);
         double y = getRawY(row, col) - getRawY(mid, mid);
 
-        double s = Math.sin(mRotate / Math.PI);
-        double c = Math.cos(mRotate / Math.PI);
+        double s = Math.sin(mRotate);
+        double c = Math.cos(mRotate);
 
         x = (x * c) - (y * s) + mTranslateX;
-        y = (x * s) + (y * c) + mTranslateY;
 
         return (float)x;
     }
@@ -288,10 +285,9 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
         double x = getRawX(row, col) - getRawX(mid, mid);
         double y = getRawY(row, col) - getRawY(mid, mid);
 
-        double s = Math.sin(mRotate / Math.PI);
-        double c = Math.cos(mRotate / Math.PI);
+        double s = Math.sin(mRotate);
+        double c = Math.cos(mRotate);
 
-        x = (x * c) - (y * s) + mTranslateX;
         y = (x * s) + (y * c) + mTranslateY;
 
         return (float)y;

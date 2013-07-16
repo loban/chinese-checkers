@@ -14,9 +14,9 @@ import java.util.Iterator;
  */
 public class Board
 {
-    public static int SIZE = 19;
+    public static final int SIZE = 19;
 
-    private static String[] initialColors = {
+    private static final String[] INITIAL_COLORS = {
         ". . . . . . . . . . . . . . . . . . .",
         ". . . . . . . . . . . . . Y . . . . .",
         ". . . . . . . . . . . . Y Y . . . . .",
@@ -41,11 +41,20 @@ public class Board
     private Collection<BoardHole> mBoardHoleCollection = new ArrayList<BoardHole>();
 
     public Board() {
+        // Create the players
+        Player[] players = new Player[6];
+        players[0] = new Player(PlayerColor.RED, "Red");
+        players[1] = new Player(PlayerColor.GREEN, "Green");
+        players[2] = new Player(PlayerColor.BLUE, "Blue");
+        players[3] = new Player(PlayerColor.MAGENTA, "Magenta");
+        players[4] = new Player(PlayerColor.YELLOW, "Yellow");
+        players[5] = new Player(PlayerColor.CYAN, "Cyan");
+
         // Create the board holes
         BoardHole[][] boardHoles = new BoardHole[SIZE][SIZE];
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                switch (initialColors[i].charAt(j * 2)) {
+                switch (INITIAL_COLORS[i].charAt(j * 2)) {
                     case '=':
                         boardHoles[i][j] = new BoardHole(i, j);
                         break;

@@ -45,7 +45,10 @@ public class BoardHole
     }
 
     public void setPlayerPiece(PlayerPiece playerPiece) {
-        mPlayerPiece = playerPiece;
+        if (mPlayerPiece != playerPiece) {
+            mPlayerPiece = playerPiece;
+            mPlayerPiece.setBoardHole(this);
+        }
     }
 
     public PlayerPiece getPlayerPiece() {

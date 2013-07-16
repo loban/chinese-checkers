@@ -21,7 +21,10 @@ public class PlayerPiece
     }
 
     public void setBoardHole(BoardHole boardHole) {
-        this.mBoardHole = boardHole;
+        if (mBoardHole != boardHole) {
+            mBoardHole = boardHole;
+            mBoardHole.setPlayerPiece(this);
+        }
     }
 
     public BoardHole getBoardHole() {
