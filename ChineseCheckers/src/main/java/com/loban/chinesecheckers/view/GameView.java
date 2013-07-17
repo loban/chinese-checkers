@@ -28,7 +28,7 @@ import java.util.Random;
  *
  * @author Loban Rahman <loban.rahman@gmail.com>
  */
-public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
+public class GameView extends SurfaceView implements SurfaceHolder.Callback,
                                                       View.OnTouchListener,
                                                       MoveGestureDetector.OnMoveGestureListener,
                                                       ScaleGestureDetector.OnScaleGestureListener,
@@ -57,7 +57,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 
     private Board mBoard;
 
-    public BoardView(Context context, Board board) {
+    public GameView(Context context, Board board) {
         super(context);
 
         getHolder().addCallback(this);
