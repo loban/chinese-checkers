@@ -17,6 +17,7 @@ import com.loban.android.view.RotateGestureDetector;
 import com.loban.chinesecheckers.enums.PlayerColor;
 import com.loban.chinesecheckers.model.Board;
 import com.loban.chinesecheckers.model.BoardHole;
+import com.loban.chinesecheckers.model.Game;
 import com.loban.chinesecheckers.model.PlayerPiece;
 
 import java.util.Iterator;
@@ -55,9 +56,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback,
     private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random mRandom = new Random();
 
-    private Board mBoard;
+    private Game mGame;
 
-    public GameView(Context context, Board board) {
+    public GameView(Context context, Game game) {
         super(context);
 
         getHolder().addCallback(this);
@@ -67,14 +68,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback,
         mScaleGestureDetector = new ScaleGestureDetector(context, this);
         mRotateGestureDetector = new RotateGestureDetector(context, this);
 
-        mBoard = board;
+        mGame = game;
     }
 
     // SurfaceHolder.Callback overrides
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        mScale = 1.5f;
+        mScale = 1f;
         mRotate = 0f;
 
         mIsRunning = true;
@@ -134,6 +135,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback,
     public boolean onMove(MoveGestureDetector detector) {
         mTranslateX += detector.getFocusDelta().x;
         mTranslateY += detector.getFocusDelta().y;
+
+        float maxX = mTile * Board.SIZE * mScale / 2;
+        float maxY = mTile * Board.SIZE * mScale / 2;
+
+        mTranslateX = Math.min(mTranslateX, maxX);
+        mTranslateY = Math.min(mTranslateY, maxY);
 
         Log.d("scooby", "onMove " + mTranslateX + ", " + mTranslateY);
 
@@ -220,7 +227,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback,
         mPaint.setStyle(Paint.Style.FILL);
         canvas.drawColor(Color.BLACK);
 
-        Iterator<BoardHole> holeIter = mBoard.getBoardHoleIterator();
+        Iterator<BoardHole> holeIter = mGame.getBoard().getBoardHoleIterator();
         while (holeIter.hasNext()) {
             BoardHole boardHole = holeIter.next();
             PlayerPiece playerPiece = boardHole.getPlayerPiece();
@@ -237,10 +244,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback,
         float outerR = mTile * 0.5f;
         float innerR = mTile * 0.4f;
 
-        if (boardHole.getPlayerColor() != null) {
-            x += getNoise();
-            y += getNoise();
-        }
+//        if (boardHole.getPlayerColor() != null) {
+//            x += getNoise();
+//            y += getNoise();
+//        }
 
         mPaint.setColor(Color.WHITE);
         if (boardHole.getPlayerColor() != null)
@@ -256,8 +263,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback,
         float y = getY(playerPiece.getBoardHole().getRow(), playerPiece.getBoardHole().getCol()) + (mTile * 0.5f);
         float r = mTile * 0.3f;
 
-        x += getNoise();
-        y += getNoise();
+//        x += getNoise();
+//        y += getNoise();
 
         mPaint.setColor(getColor(playerPiece.getPlayer().getPlayerColor()));
         canvas.drawCircle(x, y, r, mPaint);

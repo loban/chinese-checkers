@@ -40,16 +40,7 @@ public class Board
 
     private Collection<BoardHole> mBoardHoleCollection = new ArrayList<BoardHole>();
 
-    public Board() {
-        // Create the players
-        Player[] players = new Player[6];
-        players[0] = new Player(PlayerColor.RED, "Red");
-        players[1] = new Player(PlayerColor.GREEN, "Green");
-        players[2] = new Player(PlayerColor.BLUE, "Blue");
-        players[3] = new Player(PlayerColor.MAGENTA, "Magenta");
-        players[4] = new Player(PlayerColor.YELLOW, "Yellow");
-        players[5] = new Player(PlayerColor.CYAN, "Cyan");
-
+    public Board(Collection<Player> playerCollection) {
         // Create the board holes
         BoardHole[][] boardHoles = new BoardHole[SIZE][SIZE];
         for (int i = 0; i < SIZE; i++) {
@@ -99,6 +90,19 @@ public class Board
                     boardHoles[i][j].setLinkedBoardHole(BoardDirection.TOP_RIGHT, boardHoles[i - 1][j + 1]);
                 if (j + 1 < Board.SIZE)
                     boardHoles[i][j].setLinkedBoardHole(BoardDirection.RIGHT, boardHoles[i + 1][j - 1]);
+            }
+        }
+
+        // Create the player pieces
+        Iterator<BoardHole> holeIter = mBoardHoleCollection.iterator();
+        while (holeIter.hasNext()) {
+            BoardHole boardHole = holeIter.next();
+
+            Iterator<Player> playerIter = playerCollection.iterator();
+            while (playerIter.hasNext()) {
+                Player player = playerIter.next();
+                if (player.getPlayerColor() == boardHole.getPlayerColor())
+                    new PlayerPiece(player, boardHole);
             }
         }
     }

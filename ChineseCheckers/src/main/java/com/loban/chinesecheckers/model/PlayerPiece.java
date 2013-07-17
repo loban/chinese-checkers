@@ -13,7 +13,7 @@ public class PlayerPiece
 
     public PlayerPiece(Player player, BoardHole boardHole) {
         mPlayer = player;
-        mBoardHole = boardHole;
+        setBoardHole(boardHole);
     }
 
     public Player getPlayer() {

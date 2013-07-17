@@ -4,8 +4,8 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
 
-import com.loban.chinesecheckers.model.Board;
-import com.loban.chinesecheckers.view.BoardView;
+import com.loban.chinesecheckers.model.Game;
+import com.loban.chinesecheckers.view.GameView;
 
 /**
  * Created by loban on 5/26/13.
@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
-        setContentView(new BoardView(this, new Board()));
+        setContentView(new GameView(this, new Game(2)));
     }
 
 
